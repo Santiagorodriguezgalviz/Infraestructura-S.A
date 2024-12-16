@@ -1,43 +1,64 @@
 import { z } from 'zod';
-import type { Elemento } from './elementos';
 
-export interface ElementoPedido {
-  elementoId: string;
-  cantidad: number;
-  nombreElemento: string;
-  unidadMedida: string;
-}
-
-export interface Pedido {
-  id: string;
-  fechaPedido: string;
-  cliente?: string;
-  elementos: ElementoPedido[];
-  estado: 'pendiente' | 'completado';
-}
-
-export const pedidoSchema = z.object({
-  fechaPedido: z.string().min(1, 'La fecha es requerida'),
-  cliente: z.string().optional(),
-  elementos: z.array(z.object({
-    elementoId: z.string().min(1, 'El elemento es requerido'),
-    cantidad: z.number().min(1, 'La cantidad debe ser mayor a 0'),
-    nombreElemento: z.string(),
-    unidadMedida: z.string()
-  })).min(1, 'Debe seleccionar al menos un elemento'),
+export const ElementoPedidoSchema = z.object({
+  id: z.string().optional(),
+  nombre: z.string(),
+  cantidad: z.number(),
+  unidadMedida: z.string(),
+  estado: z.enum(['pendiente', 'entregado', 'rechazado']),
+  observaciones: z.string().optional()
 });
 
-export type PedidoFormValues = z.infer<typeof pedidoSchema>;
+export type ElementoPedido = z.infer<typeof ElementoPedidoSchema>;
+
+export const PedidoSchema = z.object({
+  id: z.string().optional(),
+  cliente: z.string(),
+  fechaPedido: z.string(),
+  elementos: z.array(ElementoPedidoSchema),
+  estado: z.enum(['pendiente', 'entregado', 'rechazado']),
+  observaciones: z.string().optional()
+});
+
+export type Pedido = z.infer<typeof PedidoSchema>;
 
 export const PEDIDOS_MOCK: Pedido[] = [
   {
     id: '1',
-    fechaPedido: '2024-03-20',
     cliente: 'Juan Pérez',
+    fechaPedido: new Date().toISOString(),
     elementos: [
-      { elementoId: '1', cantidad: 5, nombreElemento: 'Tubo PVC', unidadMedida: 'Unidad' },
-      { elementoId: '2', cantidad: 10, nombreElemento: 'Cable eléctrico', unidadMedida: 'Metro' }
+      {
+        id: '1',
+        nombre: 'Martillo',
+        cantidad: 2,
+        unidadMedida: 'unidad',
+        estado: 'pendiente'
+      },
+      {
+        id: '2',
+        nombre: 'Destornillador',
+        cantidad: 3,
+        unidadMedida: 'unidad',
+        estado: 'pendiente'
+      }
     ],
-    estado: 'pendiente'
+    estado: 'pendiente',
+    observaciones: 'Pedido urgente'
+  },
+  {
+    id: '2',
+    cliente: 'María García',
+    fechaPedido: new Date().toISOString(),
+    elementos: [
+      {
+        id: '3',
+        nombre: 'Cable eléctrico',
+        cantidad: 10,
+        unidadMedida: 'metro',
+        estado: 'entregado'
+      }
+    ],
+    estado: 'entregado'
   }
 ];

@@ -1,55 +1,65 @@
 import { z } from 'zod';
+import { Elemento } from './elementos';
 
-export const SECTORES = ['Bovina', 'Mantenimiento', 'Administrativa'] as const;
+export type EstadoSolicitud = 'pendiente' | 'entregado' | 'rechazado';
+export type Sector = 'Bovina' | 'Mantenimiento' | 'Administrativa' | 'Porcina' | 'Avícola';
 
-export type Sector = typeof SECTORES[number];
-
-export interface Solicitud {
-  id: string;
-  elementoId: string;
-  nombreElemento: string;
-  fechaSolicitud: string;
-  sector: Sector;
-  cantidad: number;
-  estado: 'pendiente' | 'entregado';
-}
-
-export const solicitudSchema = z.object({
-  id: z.string(),
-  elementoId: z.string(),
-  nombreElemento: z.string(),
+export const SolicitudSchema = z.object({
+  id: z.string().optional(),
+  elemento: z.object({
+    id: z.string(),
+    nombre: z.string(),
+    cantidad: z.number(),
+    unidadMedida: z.string(),
+    estado: z.string()
+  }),
   fechaSolicitud: z.string(),
-  sector: z.enum(SECTORES),
-  cantidad: z.number().min(1),
-  estado: z.enum(['pendiente', 'entregado'])
+  sector: z.string(),
+  estado: z.enum(['pendiente', 'entregado', 'rechazado']),
+  cantidad: z.number(),
+  observaciones: z.string().optional()
 });
+
+export type Solicitud = z.infer<typeof SolicitudSchema>;
+
+export const ESTADOS_SOLICITUD = ['pendiente', 'entregado', 'rechazado'] as const;
+
+export const SECTORES: Sector[] = [
+  'Bovina',
+  'Mantenimiento',
+  'Administrativa',
+  'Porcina',
+  'Avícola'
+];
 
 export const SOLICITUDES_MOCK: Solicitud[] = [
   {
     id: '1',
-    elementoId: '1',
-    nombreElemento: 'Tubo PVC',
-    fechaSolicitud: '2024-03-20',
-    sector: 'Bovina',
-    cantidad: 2,
-    estado: 'pendiente'
+    elemento: {
+      id: '1',
+      nombre: 'Martillo',
+      cantidad: 1,
+      unidadMedida: 'unidad',
+      estado: 'disponible'
+    },
+    fechaSolicitud: new Date().toISOString(),
+    sector: 'Mantenimiento',
+    estado: 'pendiente',
+    cantidad: 1,
+    observaciones: 'Urgente'
   },
   {
     id: '2',
-    elementoId: '2',
-    nombreElemento: 'Cable eléctrico',
-    fechaSolicitud: '2024-03-19',
-    sector: 'Mantenimiento',
-    cantidad: 5,
-    estado: 'entregado'
-  },
-  {
-    id: '3',
-    elementoId: '3',
-    nombreElemento: 'Pintura base agua',
-    fechaSolicitud: '2024-03-18',
-    sector: 'Administrativa',
-    cantidad: 1,
-    estado: 'pendiente'
+    elemento: {
+      id: '2',
+      nombre: 'Destornillador',
+      cantidad: 2,
+      unidadMedida: 'unidad',
+      estado: 'disponible'
+    },
+    fechaSolicitud: new Date().toISOString(),
+    sector: 'Producción',
+    estado: 'entregado',
+    cantidad: 2
   }
 ];
