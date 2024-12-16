@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { pedidoSchema, type PedidoFormValues, type Pedido } from '@/types/pedidos';
+import { PedidoSchema, type PedidoFormValues, type Pedido } from '@/types/pedidos';
 import { ElementoSelector } from './elemento-selector';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -67,7 +67,7 @@ export function PedidoModal({
   }, [pedido]);
 
   const methods = useForm<PedidoFormValues>({
-    resolver: zodResolver(pedidoSchema),
+    resolver: zodResolver(PedidoSchema),
     defaultValues
   });
 

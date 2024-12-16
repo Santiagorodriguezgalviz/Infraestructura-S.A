@@ -34,9 +34,35 @@ export const updateElemento = async (id: string, elemento: Partial<Elemento>) =>
   await updateDoc(elementoDoc, elemento);
 };
 
+export const updateElementoCantidad = async (id: string, cantidad: number) => {
+  const elementoDoc = doc(db, 'elementos', id);
+  await updateDoc(elementoDoc, { cantidad });
+};
+
 export const deleteElemento = async (id: string) => {
   const elementoDoc = doc(db, 'elementos', id);
   await deleteDoc(elementoDoc);
+};
+
+export const agregarElementosDePrueba = async () => {
+  const elementosDePrueba = [
+    {
+      nombre: 'Cemento',
+      cantidad: 100,
+      unidadMedida: 'kg',
+      estado: 'disponible'
+    },
+    {
+      nombre: 'Arena',
+      cantidad: 200,
+      unidadMedida: 'kg',
+      estado: 'disponible'
+    }
+  ];
+
+  for (const elemento of elementosDePrueba) {
+    await addElemento(elemento);
+  }
 };
 
 // Solicitudes
