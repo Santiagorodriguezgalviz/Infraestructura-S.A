@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo circular con gradiente -->
+  <circle cx="256" cy="256" r="248" fill="url(#gradient)" stroke="url(#stroke)" stroke-width="16"/>
+  
+  <!-- Texto "I.A" estilizado -->
+  <path d="M180 160h40v192h-40V160z" fill="white"/>
+  <path d="M180 140h40v-30h-40v30z" fill="white"/>
+  
+  <!-- A estilizada -->
+  <path d="M280 352V160l80 192h-30l-15-40h-50" fill="white"/>
+  <path d="M290 272h35l-17.5-45L290 272z" fill="url(#gradient)"/>
+  
+  <!-- Elementos decorativos -->
+  <circle cx="200" cy="352" r="15" fill="url(#accent)"/>
+  <path d="M265 352a15 15 0 0 1 30 0 15 15 0 0 1-30 0" fill="url(#accent)"/>
+  
+  <!-- Definiciones de gradientes -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    
+    <linearGradient id="stroke" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    
+    <linearGradient id="accent" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+  </defs>
+</svg>

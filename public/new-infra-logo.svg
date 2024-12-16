@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background Circle -->
+    <circle cx="256" cy="256" r="240" fill="#1a1a1a"/>
+    
+    <!-- Building Elements -->
+    <g transform="translate(128, 96)">
+        <!-- Modern Building Structure -->
+        <rect x="40" y="120" width="60" height="200" fill="#00ff9d"/>
+        <rect x="120" y="80" width="60" height="240" fill="#00cc7d"/>
+        <rect x="200" y="160" width="60" height="160" fill="#009f61"/>
+        
+        <!-- Connection Lines -->
+        <path d="M70 140 L150 100 L230 180" stroke="#00ff9d" stroke-width="8" fill="none"/>
+        <path d="M70 180 L150 140 L230 220" stroke="#00cc7d" stroke-width="8" fill="none"/>
+        
+        <!-- Circuit-like Details -->
+        <circle cx="70" cy="140" r="8" fill="#00ff9d"/>
+        <circle cx="150" cy="100" r="8" fill="#00ff9d"/>
+        <circle cx="230" cy="180" r="8" fill="#00ff9d"/>
+        <circle cx="70" cy="180" r="8" fill="#00cc7d"/>
+        <circle cx="150" cy="140" r="8" fill="#00cc7d"/>
+        <circle cx="230" cy="220" r="8" fill="#00cc7d"/>
+    </g>
+    
+    <!-- Outer Ring -->
+    <circle cx="256" cy="256" r="240" stroke="#00ff9d" stroke-width="4" fill="none"/>
+</svg>
