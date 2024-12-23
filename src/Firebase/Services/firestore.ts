@@ -31,7 +31,39 @@ export const getElemento = async (id: string) => {
 
 export const updateElemento = async (id: string, elemento: Partial<Elemento>) => {
   const elementoDoc = doc(db, 'elementos', id);
+  const currentElemento = await getElemento(id);
+  
+  if (!currentElemento) {
+    throw new Error('Elemento no encontrado');
+  }
+
+  // Si se está actualizando la cantidad suministrada, actualizar la cantidad disponible
+  if ('cantidadSuministrada' in elemento) {
+    elemento.cantidadDisponible = currentElemento.cantidadInicial - elemento.cantidadSuministrada;
+  }
+
   await updateDoc(elementoDoc, elemento);
+};
+
+export const updateElementoCantidadSuministrada = async (id: string, cantidadSuministrada: number) => {
+  const elementoDoc = doc(db, 'elementos', id);
+  const elemento = await getElemento(id);
+  
+  if (!elemento) {
+    throw new Error('Elemento no encontrado');
+  }
+
+  // Validar que no exceda la cantidad inicial
+  if (cantidadSuministrada > elemento.cantidadInicial) {
+    throw new Error('La cantidad suministrada no puede exceder la cantidad inicial');
+  }
+
+  const cantidadDisponible = elemento.cantidadInicial - cantidadSuministrada;
+  
+  await updateDoc(elementoDoc, { 
+    cantidadSuministrada,
+    cantidadDisponible
+  });
 };
 
 export const updateElementoCantidad = async (id: string, cantidad: number) => {
@@ -77,7 +109,28 @@ export const getSolicitudes = async () => {
 
 export const addSolicitud = async (solicitud: Omit<Solicitud, 'id'>) => {
   const solicitudesCol = collection(db, 'solicitudes');
-  const docRef = await addDoc(solicitudesCol, solicitud);
+  
+  // Obtener el elemento y validar cantidad disponible
+  const elemento = await getElemento(solicitud.elementoId);
+  if (!elemento) {
+    throw new Error('Elemento no encontrado');
+  }
+
+  const cantidadDisponible = elemento.cantidadInicial - (elemento.cantidadSuministrada || 0);
+  if (solicitud.cantidad > cantidadDisponible) {
+    throw new Error(`No hay suficientes unidades disponibles. Cantidad disponible: ${cantidadDisponible}`);
+  }
+
+  // Al crear la solicitud, actualizamos la cantidad suministrada
+  const nuevaCantidadSuministrada = (elemento.cantidadSuministrada || 0) + solicitud.cantidad;
+  await updateElementoCantidadSuministrada(elemento.id, nuevaCantidadSuministrada);
+
+  // Crear la solicitud
+  const docRef = await addDoc(solicitudesCol, {
+    ...solicitud,
+    estado: 'pendiente'
+  });
+
   return docRef.id;
 };
 
@@ -92,6 +145,31 @@ export const getSolicitud = async (id: string) => {
 
 export const updateSolicitud = async (id: string, solicitud: Partial<Solicitud>) => {
   const solicitudDoc = doc(db, 'solicitudes', id);
+  const solicitudActual = await getSolicitud(id);
+  
+  if (!solicitudActual) {
+    throw new Error('Solicitud no encontrada');
+  }
+
+  // Si estamos actualizando el estado
+  if ('estado' in solicitud && solicitud.estado !== solicitudActual.estado) {
+    const elemento = await getElemento(solicitudActual.elementoId);
+    if (!elemento) {
+      throw new Error('Elemento no encontrado');
+    }
+
+    // Si cambia a "entregado", devolvemos la cantidad al estado original
+    if (solicitud.estado === 'entregado') {
+      const nuevaCantidadSuministrada = Math.max(0, (elemento.cantidadSuministrada || 0) - solicitudActual.cantidad);
+      await updateElementoCantidadSuministrada(elemento.id, nuevaCantidadSuministrada);
+    }
+    // Si cambia de "entregado" a otro estado, volvemos a descontar la cantidad
+    else if (solicitudActual.estado === 'entregado') {
+      const nuevaCantidadSuministrada = (elemento.cantidadSuministrada || 0) + solicitudActual.cantidad;
+      await updateElementoCantidadSuministrada(elemento.id, nuevaCantidadSuministrada);
+    }
+  }
+
   await updateDoc(solicitudDoc, solicitud);
 };
 

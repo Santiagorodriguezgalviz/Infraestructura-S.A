@@ -11,6 +11,16 @@ export const elementoSchema = z.object({
     .refine(val => !isNaN(val) && val > 0, {
       message: 'La cantidad inicial debe ser un número mayor a 0'
     }),
+  cantidadSuministrada: z.union([
+    z.string(),
+    z.number()
+  ]).transform(val => typeof val === 'string' ? parseInt(val || '0') : val)
+    .default(0),
+  cantidadDisponible: z.union([
+    z.string(),
+    z.number()
+  ]).transform(val => typeof val === 'string' ? parseInt(val || '0') : val)
+    .default(0),
   unidadMedida: z.string().min(1, 'La unidad de medida es requerida'),
   fechaVencimiento: z.string().optional(),
   caracteristicas: z.string().optional(),

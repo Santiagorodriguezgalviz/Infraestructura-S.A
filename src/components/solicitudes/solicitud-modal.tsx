@@ -113,10 +113,13 @@ export function SolicitudModal({
       return;
     }
 
-    // Si es una edición, validamos contra la cantidad disponible más la cantidad actual de la solicitud
+    // Calcular la cantidad disponible real
+    const cantidadDisponible = elementoSeleccionado.cantidadInicial - (elementoSeleccionado.cantidadSuministrada || 0);
+    
+    // Si es una edición, sumamos la cantidad actual de la solicitud
     const cantidadDisponibleReal = solicitud 
-      ? elementoSeleccionado.cantidadDisponible + solicitud.cantidad 
-      : elementoSeleccionado.cantidadDisponible;
+      ? cantidadDisponible + solicitud.cantidad 
+      : cantidadDisponible;
 
     if (cantidadSolicitada > cantidadDisponibleReal) {
       toast.error(`No hay suficientes unidades disponibles. Cantidad disponible: ${cantidadDisponibleReal}`);
@@ -174,7 +177,8 @@ export function SolicitudModal({
                           setElementoSeleccionado(elemento);
                           setNombreElemento(elemento.nombre);
                           // Mostrar la cantidad disponible
-                          toast.info(`Cantidad disponible: ${elemento.cantidadDisponible} unidades`);
+                          const cantidadDisponible = elemento.cantidadInicial - (elemento.cantidadSuministrada || 0);
+                          toast.info(`Cantidad disponible: ${cantidadDisponible} unidades`);
                         }
                         setOpenElemento(false);
                       }}
@@ -185,7 +189,7 @@ export function SolicitudModal({
                           elementoId === item.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {item.nombre} ({item.cantidadDisponible} disponibles)
+                      {item.nombre} ({item.cantidadInicial - (item.cantidadSuministrada || 0)} disponibles)
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -274,9 +278,10 @@ export function SolicitudModal({
                 // Validar cantidad en tiempo real
                 if (elementoSeleccionado) {
                   const cantidadSolicitada = parseInt(value);
+                  const cantidadDisponible = elementoSeleccionado.cantidadInicial - (elementoSeleccionado.cantidadSuministrada || 0);
                   const cantidadDisponibleReal = solicitud 
-                    ? elementoSeleccionado.cantidadDisponible + solicitud.cantidad 
-                    : elementoSeleccionado.cantidadDisponible;
+                    ? cantidadDisponible + solicitud.cantidad 
+                    : cantidadDisponible;
                     
                   if (cantidadSolicitada > cantidadDisponibleReal) {
                     toast.error(`La cantidad solicitada excede la disponible (${cantidadDisponibleReal})`);

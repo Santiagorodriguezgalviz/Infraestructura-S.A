@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
+import { getElemento, updateElementoCantidadSuministrada } from '@/Firebase/Services/firestore';
 
 interface PedidoModalProps {
   open: boolean;
@@ -109,6 +110,18 @@ export function PedidoModal({
   const onSubmitForm = async (data: PedidoFormValues) => {
     try {
       setIsSubmitting(true);
+      
+      // Actualizar las cantidades suministradas de los elementos
+      for (const elemento of data.elementos) {
+        if (elemento.elementoId) {
+          const elementoActual = await getElemento(elemento.elementoId);
+          if (elementoActual) {
+            const nuevaCantidadSuministrada = (elementoActual.cantidadSuministrada || 0) + elemento.cantidad;
+            await updateElementoCantidadSuministrada(elemento.elementoId, nuevaCantidadSuministrada);
+          }
+        }
+      }
+      
       await onSubmit(data);
       methods.reset();
       setOpenCalendar(false);

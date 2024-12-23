@@ -45,6 +45,8 @@ export function ElementosTable({ elementos, onEdit, onDelete }: ElementosTablePr
               <th className="h-10 px-2 text-left align-middle font-medium">Categoría</th>
               <th className="h-10 px-2 text-left align-middle font-medium">Tipo</th>
               <th className="h-10 px-2 text-left align-middle font-medium">Cantidad Inicial</th>
+              <th className="h-10 px-2 text-left align-middle font-medium">Cantidad Suministrada</th>
+              <th className="h-10 px-2 text-left align-middle font-medium">Cantidad Disponible</th>
               <th className="h-10 px-2 text-left align-middle font-medium">Unidad</th>
               <th className="h-10 px-2 text-left align-middle font-medium">Vencimiento</th>
               <th className="h-10 px-2 text-right align-middle font-medium">Acciones</th>
@@ -53,11 +55,15 @@ export function ElementosTable({ elementos, onEdit, onDelete }: ElementosTablePr
           <tbody>
             {elementos.map((elemento) => (
               <tr key={elemento.id} className="border-b">
-                <td className="p-2">{elemento.nombre}</td>
-                <td className="p-2">{elemento.categoria}</td>
-                <td className="p-2">{elemento.tipoElemento}</td>
-                <td className="p-2">{elemento.cantidadInicial}</td>
-                <td className="p-2">{elemento.unidadMedida}</td>
+                <td className="p-2 align-middle">{elemento.nombre}</td>
+                <td className="p-2 align-middle">{elemento.categoria}</td>
+                <td className="p-2 align-middle">{elemento.tipoElemento}</td>
+                <td className="p-2 align-middle">{elemento.cantidadInicial.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-2 align-middle">{(elemento.cantidadSuministrada || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-2 align-middle">
+                  {(elemento.cantidadInicial - (elemento.cantidadSuministrada || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="p-2 align-middle">{elemento.unidadMedida}</td>
                 <td className="p-2">
                   {elemento.fechaVencimiento ? (
                     <span className="text-muted-foreground">
@@ -141,7 +147,7 @@ export function ElementosTable({ elementos, onEdit, onDelete }: ElementosTablePr
                 </div>
                 <div>
                   <p className="font-medium">Cantidad Inicial</p>
-                  <p className="text-sm text-muted-foreground">{selectedElemento.cantidadInicial}</p>
+                  <p className="text-sm text-muted-foreground">{selectedElemento.cantidadInicial.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
                 <div>
                   <p className="font-medium">Unidad de Medida</p>

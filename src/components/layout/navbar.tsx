@@ -1,4 +1,4 @@
-import { Bell, Search, Moon, Sun } from 'lucide-react';
+import { Bell, Search, Moon, Sun, MessageSquare, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from './theme-toggle';
@@ -16,6 +16,8 @@ import { useState, useEffect } from 'react';
 import { PerfilModal } from '@/components/perfil/perfil-modal';
 import { auth } from '@/Firebase/Config';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { ChatbotComponent } from '@/components/chat/ChatbotComponent';
+import { Link } from "react-router-dom";
 
 interface NavbarProps {
   onLogout?: () => void;
@@ -24,6 +26,7 @@ interface NavbarProps {
 export function Navbar({ onLogout }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [perfilOpen, setPerfilOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -48,8 +51,14 @@ export function Navbar({ onLogout }: NavbarProps) {
 
   return (
     <>
-      <div className="border-b">
-        <div className="flex h-16 items-center px-4">
+      <nav className="border-b">
+        <div className="flex h-16 items-center px-4 container mx-auto">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="font-bold">
+              Inventario
+            </Link>
+          </div>
+
           <div className="ml-auto flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -70,6 +79,13 @@ export function Navbar({ onLogout }: NavbarProps) {
             <ThemeToggle />
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setChatOpen(true)}
+            >
+              <MessageSquare className="h-5 w-5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -95,13 +111,38 @@ export function Navbar({ onLogout }: NavbarProps) {
             </DropdownMenu>
           </div>
         </div>
-      </div>
+        
+        {/* Botón flotante del chat */}
+        <button
+          onClick={() => setChatOpen(!chatOpen)}
+          className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg 
+            transition-all duration-300 transform hover:scale-105 hover:-translate-y-1
+            flex items-center justify-center
+            ${chatOpen 
+              ? 'bg-destructive hover:bg-destructive/90' 
+              : 'bg-primary hover:bg-primary/90'
+            }
+            group
+            backdrop-blur-sm
+            hover:shadow-xl
+            motion-safe:animate-bounce`}
+        >
+          <MessageCircle className={`h-6 w-6 text-primary-foreground transition-all duration-300 ${
+            chatOpen ? 'rotate-180' : 'group-hover:scale-110'
+          }`} />
+        </button>
 
-      <PerfilModal
-        open={perfilOpen}
-        onOpenChange={setPerfilOpen}
-        user={user}
-      />
+        <ChatbotComponent
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
+        
+        <PerfilModal
+          open={perfilOpen}
+          onClose={() => setPerfilOpen(false)}
+          user={user}
+        />
+      </nav>
     </>
   );
 }

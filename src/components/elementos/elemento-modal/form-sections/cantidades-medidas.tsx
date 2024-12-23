@@ -59,6 +59,30 @@ export function CantidadesMedidas() {
 
         <FormField
           control={form.control}
+          name="cantidadSuministrada"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cantidad Suministrada</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Ingresa la cantidad suministrada"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    const cantidadInicial = form.getValues('cantidadInicial');
+                    const cantidadSuministrada = e.target.value ? parseInt(e.target.value) : 0;
+                    form.setValue('cantidadDisponible', cantidadInicial - cantidadSuministrada);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="unidadMedida"
           render={({ field }) => (
             <FormItem>
@@ -79,6 +103,24 @@ export function CantidadesMedidas() {
                     ))}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cantidadDisponible"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cantidad Disponible</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  value={field.value || ''}
+                  readOnly
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -6,7 +6,7 @@ export interface Elemento {
   categoria: string;
   tipoElemento: string;
   cantidadInicial: number;
-  cantidadActual: number;
+  cantidadSuministrada: number;
   cantidadDisponible: number;
   unidadMedida: string;
   estado: 'disponible' | 'no-disponible';
@@ -24,7 +24,7 @@ export const elementoSchema = z.object({
   categoria: z.string(),
   tipoElemento: z.string(),
   cantidadInicial: z.number(),
-  cantidadActual: z.number(),
+  cantidadSuministrada: z.number().default(0),
   cantidadDisponible: z.number(),
   unidadMedida: z.string(),
   estado: z.enum(['disponible', 'no-disponible']),
