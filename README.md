@@ -91,7 +91,7 @@ Sistema integral de gestión de inventario desarrollado para Infraestructura S.A
 
 ## 👥 Equipo de Desarrollo
 
-- Desarrollado por el equipo de Infraestructura S.A
+- Desarrollado por el equipo de Infraestructura S.A - Santiago Rodríguez
 - Mantenido y actualizado regularmente
 
 ## 📄 Licencia
