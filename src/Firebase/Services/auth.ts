@@ -1,4 +1,4 @@
-import { auth } from '../config';
+import { auth } from '../Config';
 import { 
   signInWithEmailAndPassword,
   signOut,
@@ -7,20 +7,12 @@ import {
 } from 'firebase/auth';
 
 export const loginWithEmail = async (email: string, password: string) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
-  } catch (error) {
-    throw error;
-  }
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
 };
 
 export const logout = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    throw error;
-  }
+  await signOut(auth);
 };
 
 export const onAuthStateChange = (callback: (user: User | null) => void) => {

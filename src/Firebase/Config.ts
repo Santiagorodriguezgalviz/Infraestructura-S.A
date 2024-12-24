@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,7 +19,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // Initialize Analytics only if supported
-let analytics = null;
+let analytics: Analytics | null = null;
 isSupported().then(yes => yes && (analytics = getAnalytics(app))).catch(console.error);
 
 export { app, db, auth, analytics };

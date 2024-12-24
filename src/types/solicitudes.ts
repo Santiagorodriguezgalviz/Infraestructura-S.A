@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Elemento } from './elementos';
 
 export type EstadoSolicitud = 'pendiente' | 'entregado' | 'rechazado';
-export type Sector = 'Bovina' | 'Mantenimiento' | 'Administrativa' | 'Porcina' | 'Avícola';
+export type Sector = typeof SECTORES[number];
 
 export const SolicitudSchema = z.object({
   id: z.string().optional(),
@@ -24,13 +24,13 @@ export type Solicitud = z.infer<typeof SolicitudSchema>;
 
 export const ESTADOS_SOLICITUD = ['pendiente', 'entregado', 'rechazado'] as const;
 
-export const SECTORES: Sector[] = [
+export const SECTORES = [
   'Bovina',
   'Mantenimiento',
   'Administrativa',
   'Porcina',
   'Avícola'
-];
+] as const;
 
 export const SOLICITUDES_MOCK: Solicitud[] = [
   {

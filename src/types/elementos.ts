@@ -15,7 +15,14 @@ export interface Elemento {
   caracteristicas?: string;
   observaciones?: string;
   fechaVencimiento?: string;
-  consumos?: any[];
+  consumos?: Consumo[];
+}
+
+export interface Consumo {
+  fecha: string;
+  cantidad: number;
+  usuario: string;
+  descripcion?: string;
 }
 
 export const elementoSchema = z.object({
@@ -33,7 +40,12 @@ export const elementoSchema = z.object({
   caracteristicas: z.string().optional(),
   observaciones: z.string().optional(),
   fechaVencimiento: z.string().optional(),
-  consumos: z.array(z.any()).optional()
+  consumos: z.array(z.object({
+    fecha: z.string(),
+    cantidad: z.number(),
+    usuario: z.string(),
+    descripcion: z.string().optional()
+  })).optional()
 });
 
 export const TIPOS_ELEMENTO = [
@@ -79,7 +91,12 @@ export const ElementoSchema = z.object({
   caracteristicas: z.string().optional(),
   observaciones: z.string().optional(),
   fechaVencimiento: z.string().optional(),
-  consumos: z.array(z.any()).optional()
+  consumos: z.array(z.object({
+    fecha: z.string(),
+    cantidad: z.number(),
+    usuario: z.string(),
+    descripcion: z.string().optional()
+  })).optional()
 });
 
 export type ElementoNuevo = z.infer<typeof ElementoSchema>;

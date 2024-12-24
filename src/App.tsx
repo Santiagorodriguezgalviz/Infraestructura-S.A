@@ -1,4 +1,4 @@
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Navbar } from '@/components/layout/navbar';
@@ -12,36 +12,19 @@ import { toast, Toaster } from 'sonner';
 import { LogOut } from 'lucide-react';
 import { auth } from '@/Firebase/Config';
 import { signOut } from 'firebase/auth';
+import { AuthGuard } from '@/guards/AuthGuard';
+import { ROUTES } from '@/routes/routes.config';
 
-export default function App() {
+// Componente interno para manejar la navegación
+function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
-  const [currentView, setCurrentView] = useState(() => {
-    return localStorage.getItem('currentView') || 'dashboard';
-  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated.toString());
   }, [isAuthenticated]);
-
-  useEffect(() => {
-    localStorage.setItem('currentView', currentView);
-  }, [currentView]);
-
-  useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      event.preventDefault();
-      window.history.pushState(null, '', '/');
-    };
-
-    window.history.pushState(null, '', '/');
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -50,6 +33,11 @@ export default function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // Limpiar el estado de autenticación inmediatamente
+      setIsAuthenticated(false);
+      // Limpiar el localStorage
+      localStorage.removeItem('isAuthenticated');
+      
       toast.success(
         <div className="flex items-center gap-4">
           <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -68,10 +56,9 @@ export default function App() {
           position: "top-center",
         }
       );
-      setTimeout(() => {
-        setIsAuthenticated(false);
-        setCurrentView('dashboard');
-      }, 1000);
+      
+      // Redireccionar al login
+      navigate(ROUTES.LOGIN, { replace: true });
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       toast.error(
@@ -92,44 +79,72 @@ export default function App() {
     }
   };
 
-  const renderView = () => {
-    switch (currentView) {
-      case 'dashboard':
-        return <DashboardView />;
-      case 'elementos':
-        return <ElementosView />;
-      case 'solicitudes':
-        return <SolicitudesView />;
-      case 'pedidos':
-        return <PedidosView />;
-      default:
-        return <DashboardView />;
-    }
-  };
+  return (
+    <Routes>
+      {/* Ruta pública - Login */}
+      <Route 
+        path={ROUTES.LOGIN} 
+        element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD.ROOT} replace /> : <LoginView onLogin={handleLogin} />} 
+      />
 
-  if (!isAuthenticated) {
-    return (
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <LoginView onLogin={handleLogin} />
-      </ThemeProvider>
-    );
-  }
+      {/* Redirección de la raíz al dashboard */}
+      <Route 
+        path="/" 
+        element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} 
+      />
 
+      {/* Rutas protegidas */}
+      <Route
+        path="/*"
+        element={
+          <AuthGuard>
+            <div className="flex h-screen">
+              <Sidebar />
+              <div className="flex-1 flex-col">
+                <Navbar onLogout={handleLogout} />
+                <main className="flex-1 overflow-y-auto p-8">
+                  <Routes>
+                    {/* Dashboard Routes */}
+                    <Route path={ROUTES.DASHBOARD.ROOT} element={<DashboardView />} />
+                    <Route path={ROUTES.DASHBOARD.OVERVIEW} element={<DashboardView />} />
+                    <Route path={ROUTES.DASHBOARD.ANALYTICS} element={<DashboardView />} />
+
+                    {/* Inventory Routes */}
+                    <Route path={ROUTES.INVENTORY.ROOT} element={<ElementosView />} />
+                    <Route path={ROUTES.INVENTORY.LIST} element={<ElementosView />} />
+                    <Route path={ROUTES.INVENTORY.ADD} element={<ElementosView />} />
+                    <Route path={ROUTES.INVENTORY.EDIT} element={<ElementosView />} />
+
+                    {/* Requests Routes */}
+                    <Route path={ROUTES.REQUESTS.ROOT} element={<SolicitudesView />} />
+                    <Route path={ROUTES.REQUESTS.PENDING} element={<SolicitudesView />} />
+                    <Route path={ROUTES.REQUESTS.APPROVED} element={<SolicitudesView />} />
+                    <Route path={ROUTES.REQUESTS.REJECTED} element={<SolicitudesView />} />
+
+                    {/* Orders Routes */}
+                    <Route path={ROUTES.ORDERS.ROOT} element={<PedidosView />} />
+                    <Route path={ROUTES.ORDERS.ACTIVE} element={<PedidosView />} />
+                    <Route path={ROUTES.ORDERS.HISTORY} element={<PedidosView />} />
+
+                    {/* Ruta 404 */}
+                    <Route path="*" element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />
+                  </Routes>
+                </main>
+              </div>
+            </div>
+          </AuthGuard>
+        }
+      />
+    </Routes>
+  );
+}
+
+// Componente principal que proporciona el contexto de enrutamiento
+export default function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <div className="flex h-screen">
-          <Sidebar 
-            currentView={currentView} 
-            onViewChange={setCurrentView} 
-          />
-          <div className="flex flex-1 flex-col">
-            <Navbar onLogout={handleLogout} />
-            <main className="flex-1 overflow-y-auto p-8">
-              {renderView()}
-            </main>
-          </div>
-        </div>
+      <ThemeProvider>
+        <AppContent />
         <Toaster />
       </ThemeProvider>
     </BrowserRouter>

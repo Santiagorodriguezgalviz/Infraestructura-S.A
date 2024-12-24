@@ -36,20 +36,19 @@ interface PedidosTableProps {
   pedidos: Pedido[];
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  estadoFilter: string;
-  onEstadoFilterChange: (value: string) => void;
+  estadoFilter: 'all' | 'pendiente' | 'entregado' | 'rechazado';
+  onEstadoFilterChange: (value: 'all' | 'pendiente' | 'entregado' | 'rechazado') => void;
   clienteFilter: string;
   onClienteFilterChange: (value: string) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   totalItems: number;
-  onUpdateEstado: (id: string, estado: string) => void;
+  onUpdateEstado: (id: string, estado: 'pendiente' | 'entregado' | 'rechazado') => void;
   onEdit: (pedido: Pedido) => void;
   onDelete: (id: string) => void;
   itemsPerPage: number;
   onItemsPerPageChange: (value: string) => void;
-  elementos: any[];
 }
 
 export function PedidosTable({
@@ -69,7 +68,6 @@ export function PedidosTable({
   onDelete,
   itemsPerPage,
   onItemsPerPageChange,
-  elementos
 }: PedidosTableProps) {
   const formatFecha = (fecha: any) => {
     if (fecha instanceof Timestamp) {

@@ -31,7 +31,7 @@ import {
   deleteSolicitud,
   agregarSolicitudesDePrueba,
   getElementos,
-  updateElementoCantidad
+  updateElementoCantidadSuministrada
 } from '@/Firebase/Services/firestore';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
 
@@ -99,13 +99,13 @@ export function SolicitudesView() {
       if (solicitudActual.estado === 'entregado' && nuevoEstado === 'pendiente') {
         console.log('Restando cantidades para solicitud:', solicitudId);
         // Restamos las cantidades porque los elementos vuelven a estar prestados
-        await updateElementoCantidad(solicitudActual.elementoId, -solicitudActual.cantidad);
+        await updateElementoCantidadSuministrada(solicitudActual.elementoId, -solicitudActual.cantidad);
       }
       // Si cambiamos de pendiente a entregado
       else if (solicitudActual.estado === 'pendiente' && nuevoEstado === 'entregado') {
         console.log('Sumando cantidades para solicitud:', solicitudId);
         // Sumamos las cantidades porque los elementos fueron devueltos
-        await updateElementoCantidad(solicitudActual.elementoId, solicitudActual.cantidad);
+        await updateElementoCantidadSuministrada(solicitudActual.elementoId, solicitudActual.cantidad);
       }
 
       // Actualizamos el estado de la solicitud
@@ -148,7 +148,7 @@ export function SolicitudesView() {
       };
 
       // Primero restamos la cantidad del inventario
-      await updateElementoCantidad(data.elementoId, -data.cantidad);
+      await updateElementoCantidadSuministrada(data.elementoId, -data.cantidad);
 
       // Luego creamos la solicitud
       const id = await addSolicitud(newSolicitud);

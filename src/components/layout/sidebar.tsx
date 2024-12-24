@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '@/routes/routes.config';
 import {
   LayoutDashboard,
   Package2,
@@ -14,36 +16,33 @@ const nav = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    value: 'dashboard',
+    path: ROUTES.DASHBOARD.ROOT,
     description: 'Vista general',
   },
   {
     title: 'Elementos',
     icon: Package2,
-    value: 'elementos',
+    path: ROUTES.INVENTORY.ROOT,
     description: 'Gestión de inventario',
   },
   {
     title: 'Solicitudes',
     icon: ClipboardList,
-    value: 'solicitudes',
+    path: ROUTES.REQUESTS.ROOT,
     description: 'Control de solicitudes',
   },
   {
     title: 'Pedidos',
     icon: ShoppingCart,
-    value: 'pedidos',
+    path: ROUTES.ORDERS.ROOT,
     description: 'Gestión de pedidos',
   },
 ];
 
-interface SidebarProps {
-  currentView: string;
-  onViewChange: (view: string) => void;
-}
-
-export function Sidebar({ currentView, onViewChange }: SidebarProps) {
+export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div
@@ -52,15 +51,27 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
         collapsed ? 'w-16' : 'w-64'
       )}
     >
-      <div className="flex h-16 items-center justify-between px-4">
-        <h2
-          className={cn(
-            'text-lg font-semibold tracking-tight text-primary duration-300',
-            collapsed && 'opacity-0'
+      {/* Logo y botón de colapso */}
+      <div className="flex h-16 items-center justify-between px-3 border-b">
+        <div className={cn(
+          'flex items-center gap-3 duration-300',
+          collapsed ? 'w-8' : 'w-full'
+        )}>
+          <img
+            src="/logo-sena.png"
+            alt="Logo SENA"
+            className={cn(
+              'object-contain transition-all duration-300',
+              collapsed ? 'w-8 h-8' : 'w-12 h-12'
+            )}
+          />
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="font-semibold text-primary">Infraestructura S.A</span>
+              <span className="text-xs text-muted-foreground">Gestión de Inventario</span>
+            </div>
           )}
-        >
-          {collapsed ? 'II' : 'Inventario Infraestructura S.A'}
-        </h2>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -70,31 +81,34 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           <Menu className="h-4 w-4" />
         </Button>
       </div>
+
       <ScrollArea className="h-[calc(100vh-4rem)]">
-        <div className="flex flex-col gap-4 p-4">
-          <nav className="flex flex-col gap-2">
-            {nav.map((item) => (
+        <div className="flex flex-col gap-2 p-2">
+          {nav.map(({ title, icon: Icon, path, description }) => {
+            const isActive = location.pathname.startsWith(path);
+
+            return (
               <Button
-                key={item.value}
-                variant={currentView === item.value ? 'secondary' : 'ghost'}
+                key={path}
+                variant={isActive ? 'secondary' : 'ghost'}
                 className={cn(
-                  'justify-start gap-4 hover:bg-primary/10',
-                  collapsed && 'justify-center px-2'
+                  'w-full justify-start gap-4 hover:bg-muted/50',
+                  collapsed && 'justify-center'
                 )}
-                onClick={() => onViewChange(item.value)}
+                onClick={() => navigate(path)}
               >
-                <item.icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" />
                 {!collapsed && (
                   <div className="flex flex-col items-start">
-                    <span>{item.title}</span>
+                    <span>{title}</span>
                     <span className="text-xs text-muted-foreground">
-                      {item.description}
+                      {description}
                     </span>
                   </div>
                 )}
               </Button>
-            ))}
-          </nav>
+            );
+          })}
         </div>
       </ScrollArea>
     </div>

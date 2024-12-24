@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Package, ShoppingCart, AlertTriangle, Archive, Clock } from 'lucide-react';
 import '@/styles/scrollbar.css';
+import { ROUTES } from "@/routes/routes.config";
 
 const formatDate = (fecha: any) => {
   if (!fecha) return 'Fecha no disponible';
@@ -26,10 +27,10 @@ export function DashboardView() {
   const navigate = useNavigate();
 
   const handleLowStockClick = () => {
-    navigate('/pedidos/nuevo'); // Navegar a la página de nuevo pedido
+    navigate(`${ROUTES.INVENTORY.ROOT}?filter=lowStock`);
   };
 
-  const StatsCard = ({ title, value, increment, icon: Icon, onClick }) => (
+  const StatsCard = ({ title, value, increment, icon: Icon, onClick, children }) => (
     <Card 
       className={`p-6 bg-gradient-to-br from-background/50 to-background border-0 backdrop-blur-sm hover:scale-105 transition-all duration-300 ${onClick ? 'cursor-pointer hover:bg-accent/50 transition-colors' : ''}`} 
       onClick={onClick}
@@ -45,6 +46,7 @@ export function DashboardView() {
               </span>
             </p>
           )}
+          {children}
         </div>
         <div className="p-4 rounded-xl bg-primary/10">
           <Icon className="w-6 h-6 text-primary" />
@@ -90,7 +92,7 @@ export function DashboardView() {
           onClick={handleLowStockClick}
         >
           <p className="text-xs text-muted-foreground mt-1">
-            Click para hacer un nuevo pedido
+            Click para ver elementos bajo stock
           </p>
         </StatsCard>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -9,16 +9,24 @@ import { cn } from '@/lib/utils';
 import { Toaster, toast } from 'sonner';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/Firebase/Config';
+import { authConfig } from '@/config/auth.config';
 
 interface LoginProps {
   onLogin: () => void;
 }
 
 export function LoginView({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('infraestructura@gmail.com');
-  const [password, setPassword] = useState('AdminS.A');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
+
+  // Cargar credenciales predefinidas de forma segura
+  useEffect(() => {
+    const defaultCreds = authConfig.getDefaultCredentials();
+    setEmail(defaultCreds.email);
+    setPassword(defaultCreds.password);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

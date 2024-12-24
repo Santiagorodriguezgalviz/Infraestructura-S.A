@@ -5,6 +5,7 @@ import { ElementosTable } from '@/components/elementos/elementos-table';
 import { ElementoModal } from '@/components/elementos/elemento-modal';
 import type { Elemento } from '@/types/elementos';
 import { Input } from '@/components/ui/input';
+import { useSearchParams } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -36,8 +37,7 @@ export function ElementosView() {
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  const categorias = ['todas', ...CATEGORIAS];
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const fetchElementos = async () => {
@@ -60,6 +60,16 @@ export function ElementosView() {
 
     fetchElementos();
   }, []);
+
+  useEffect(() => {
+    const filter = searchParams.get('filter');
+    if (filter === 'lowStock') {
+      setSearchQuery('');
+      setSelectedCategoria('todas');
+      // Mostrar mensaje de que estamos viendo elementos bajo stock
+      toast.info('Mostrando elementos con bajo stock');
+    }
+  }, [searchParams]);
 
   const handleEdit = (elemento: Elemento) => {
     setSelectedElemento(elemento);
@@ -173,14 +183,28 @@ export function ElementosView() {
     }
   };
 
-  const filteredElementos = elementos.filter((elemento) => {
-    const matchesSearch = elemento.nombre
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesCategoria =
-      selectedCategoria === 'todas' || elemento.categoria === selectedCategoria;
-    return matchesSearch && matchesCategoria;
-  });
+  const filteredElementos = elementos
+    .filter((elemento) => {
+      const matchesSearch = elemento.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        elemento.descripcion.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategoria = selectedCategoria === 'todas' || elemento.categoria === selectedCategoria;
+      
+      const filter = searchParams.get('filter');
+      const matchesLowStock = filter === 'lowStock' ? elemento.cantidad <= elemento.stockMinimo : true;
+
+      return matchesSearch && matchesCategoria && matchesLowStock;
+    })
+    .sort((a, b) => {
+      const filter = searchParams.get('filter');
+      if (filter === 'lowStock') {
+        // Si estamos filtrando por bajo stock, ordenar por la diferencia entre cantidad y stock mínimo
+        const diffA = a.cantidad - a.stockMinimo;
+        const diffB = b.cantidad - b.stockMinimo;
+        return diffA - diffB;
+      }
+      return 0;
+    });
 
   // Paginación
   const totalItems = filteredElementos.length;
@@ -241,7 +265,7 @@ export function ElementosView() {
             <SelectValue placeholder="Todas las categorías" />
           </SelectTrigger>
           <SelectContent>
-            {categorias.map((categoria) => (
+            {['todas', ...CATEGORIAS].map((categoria) => (
               <SelectItem key={categoria} value={categoria}>
                 {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
               </SelectItem>

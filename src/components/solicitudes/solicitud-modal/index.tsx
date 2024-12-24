@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SECTORES } from '@/types/solicitudes';
-import { solicitudSchema, type SolicitudFormValues } from './types';
+import { solicitudSchema, type SolicitudFormValues, type Sector } from './types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -35,7 +35,7 @@ interface SolicitudModalProps {
 
 export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: SolicitudModalProps) {
   const [elementos, setElementos] = useState<Elemento[]>([]);
-  
+
   useEffect(() => {
     const fetchElementos = async () => {
       try {
@@ -47,7 +47,7 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
         console.error('Error al cargar elementos:', error);
       }
     };
-    
+
     fetchElementos();
   }, []);
 
@@ -56,7 +56,7 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
     defaultValues: {
       elementoId: '',
       fechaSolicitud: new Date().toISOString(),
-      sector: 'Bovina',
+      sector: SECTORES[0],
       cantidad: 1
     }
   });
@@ -73,7 +73,7 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
     form.reset({
       elementoId: '',
       fechaSolicitud: new Date().toISOString(),
-      sector: 'Bovina',
+      sector: SECTORES[0],
       cantidad: 1
     });
     setOpenCombobox(false);
@@ -87,7 +87,7 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
       if (!elementoSeleccionado) {
         throw new Error('Elemento no encontrado');
       }
-      
+
       onSubmit({
         ...data,
         elemento: elementoSeleccionado.nombre // Aseguramos que se envíe el nombre del elemento
@@ -103,15 +103,16 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
       form.reset({
         elementoId: '',
         fechaSolicitud: new Date().toISOString(),
-        sector: 'Bovina',
+        sector: SECTORES[0],
         cantidad: 1
       });
     } else if (solicitud) {
       const elementoId = elementos.find(e => e.nombre === solicitud.elemento)?.id || '';
+      const sector = SECTORES.includes(solicitud.sector as Sector) ? solicitud.sector : SECTORES[0];
       form.reset({
         elementoId,
         fechaSolicitud: solicitud.fechaSolicitud,
-        sector: solicitud.sector,
+        sector: sector as Sector,
         cantidad: solicitud.cantidad || 1
       });
     }
@@ -200,8 +201,8 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
             </Popover>
 
             <Select 
-              value={form.watch('sector')} 
-              onValueChange={(value) => form.setValue('sector', value)}
+              value={form.watch('sector')}
+              onValueChange={(value) => form.setValue('sector', value as Sector)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar sector" />
@@ -236,10 +237,10 @@ export function SolicitudModal({ open, onOpenChange, solicitud, onSubmit }: Soli
       </Dialog>
 
       <SuccessAlert
-        show={showSuccess}
-        onClose={() => {
-          setShowSuccess(false);
-          handleClose();
+        open={showSuccess}
+        onOpenChange={(open) => {
+          setShowSuccess(open);
+          if (!open) handleClose();
         }}
         title={solicitud ? "Solicitud actualizada" : "Solicitud creada"}
         description={solicitud ? "La solicitud ha sido actualizada correctamente" : "La solicitud ha sido creada correctamente"}

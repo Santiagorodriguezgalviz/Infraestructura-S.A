@@ -12,7 +12,7 @@ import {
   updatePedido, 
   deletePedido,
   getElementos,
-  updateElementoCantidad 
+  updateElementoCantidadSuministrada 
 } from '@/Firebase/Services/firestore';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
 
@@ -24,7 +24,7 @@ export function PedidosView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
-  const [estadoFilter, setEstadoFilter] = useState('all');
+  const [estadoFilter, setEstadoFilter] = useState<'all' | 'pendiente' | 'entregado' | 'rechazado'>('all');
   const [clienteFilter, setClienteFilter] = useState('all');
   const [successMessage, setSuccessMessage] = useState<{ title: string; description: string } | null>(null);
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
@@ -49,103 +49,91 @@ export function PedidosView() {
     fetchData();
   }, []);
 
-  const handleSubmit = async (data: PedidoFormValues) => {
+  const handleUpdateEstado = async (id: string, nuevoEstado: 'pendiente' | 'entregado' | 'rechazado') => {
     try {
-      const pedidoData = {
-        ...selectedPedido,
-        fechaPedido: data.fechaPedido,
-        cliente: data.cliente || '',
-        elementos: data.elementos.map(elem => ({
-          elementoId: elem.elementoId,
-          nombreElemento: elem.nombreElemento || '',
-          cantidad: elem.cantidad,
-          unidadMedida: elem.unidadMedida
-        })),
-        estado: selectedPedido?.estado || 'pendiente'
-      };
+      const pedidoActual = pedidos.find(p => p.id === id);
+      if (!pedidoActual || !pedidoActual.id) return;
 
-      if (selectedPedido) {
-        await updatePedido(selectedPedido.id, pedidoData);
-        setSuccessMessage({
-          title: 'Pedido actualizado',
-          description: 'El pedido ha sido actualizado exitosamente.'
-        });
-      } else {
-        await addPedido(pedidoData);
-        setSuccessMessage({
-          title: 'Pedido creado',
-          description: 'El nuevo pedido ha sido creado exitosamente.'
-        });
-      }
-
-      const updatedPedidos = await getPedidos();
-      setPedidos(updatedPedidos);
-      setModalOpen(false);
-      setSuccessAlertOpen(true);
-      setSelectedPedido(null);
-    } catch (error) {
-      console.error('Error al procesar el pedido:', error);
-      setSuccessMessage({
-        title: 'Error',
-        description: 'Hubo un error al procesar el pedido.'
-      });
-      setSuccessAlertOpen(true);
-    }
-  };
-
-  const handleUpdateEstado = async (pedidoId: string, nuevoEstado: string) => {
-    try {
-      const pedidoActual = pedidos.find(p => p.id === pedidoId);
-      if (!pedidoActual) return;
-
-      console.log('Estado actual:', pedidoActual.estado, 'Nuevo estado:', nuevoEstado);
-
-      // Si cambiamos de completado a pendiente
-      if (pedidoActual.estado === 'completado' && nuevoEstado === 'pendiente') {
-        console.log('Restando cantidades para pedido:', pedidoId);
-        // Restamos las cantidades porque el pedido está pendiente
+      if (nuevoEstado === 'pendiente') {
+        console.log('Restando cantidades para pedido:', id);
         for (const elemento of pedidoActual.elementos) {
-          console.log(`Restando ${elemento.cantidad} de ${elemento.elementoId}`);
-          await updateElementoCantidad(elemento.elementoId, -elemento.cantidad);
-        }
-      }
-      // Si es un pedido nuevo que se marca como pendiente
-      else if (pedidoActual.estado === '' && nuevoEstado === 'pendiente') {
-        console.log('Restando cantidades para nuevo pedido pendiente:', pedidoId);
-        for (const elemento of pedidoActual.elementos) {
-          console.log(`Restando ${elemento.cantidad} de ${elemento.elementoId}`);
-          await updateElementoCantidad(elemento.elementoId, -elemento.cantidad);
+          if (elemento.id) {
+            console.log(`Restando ${elemento.cantidad} de ${elemento.id}`);
+            await updateElementoCantidadSuministrada(elemento.id, -elemento.cantidad);
+          }
         }
       }
 
-      // Actualizamos el estado del pedido
-      await updatePedido(pedidoId, { estado: nuevoEstado });
+      await updatePedido(pedidoActual.id, { estado: nuevoEstado });
 
-      // Recargamos los elementos y pedidos para mostrar las cantidades actualizadas
-      console.log('Recargando datos...');
-      const [elementosActualizados, pedidosActualizados] = await Promise.all([
-        getElementos(),
-        getPedidos()
-      ]);
-      
-      console.log('Actualizando estado...');
-      setElementos(elementosActualizados);
-      setPedidos(pedidosActualizados);
-      
+      setPedidos(prevPedidos =>
+        prevPedidos.map(pedido =>
+          pedido.id === id
+            ? { ...pedido, estado: nuevoEstado }
+            : pedido
+        )
+      );
+
       setSuccessMessage({
-        title: 'Pedido actualizado',
-        description: nuevoEstado === 'completado' 
-          ? 'El pedido ha sido completado.'
-          : 'El pedido ha sido marcado como pendiente y las cantidades han sido actualizadas.'
+        title: 'Estado actualizado',
+        description: `El estado del pedido ha sido actualizado a ${nuevoEstado}`
       });
       setSuccessAlertOpen(true);
     } catch (error) {
       console.error('Error al actualizar estado:', error);
-      setSuccessMessage({
-        title: 'Error',
-        description: 'Hubo un error al actualizar el estado del pedido.'
-      });
+    }
+  };
+
+  const handleSubmit = async (data: PedidoFormValues) => {
+    try {
+      if (selectedPedido && selectedPedido.id) {
+        await updatePedido(selectedPedido.id, {
+          ...data,
+          estado: data.estado || 'pendiente'
+        } as Pedido);
+        
+        setPedidos(prevPedidos =>
+          prevPedidos.map(pedido =>
+            pedido.id === selectedPedido.id
+              ? { ...pedido, ...data }
+              : pedido
+          )
+        );
+
+        setSuccessMessage({
+          title: 'Pedido actualizado',
+          description: 'El pedido ha sido actualizado exitosamente'
+        });
+      } else {
+        const newPedido = {
+          ...data,
+          fechaPedido: new Date().toISOString(),
+          estado: 'pendiente' as const
+        };
+
+        for (const elemento of data.elementos) {
+          if (elemento.id) {
+            console.log(`Restando ${elemento.cantidad} de ${elemento.id} para nuevo pedido`);
+            await updateElementoCantidadSuministrada(elemento.id, -elemento.cantidad);
+          }
+        }
+
+        const id = await addPedido(newPedido);
+        const pedidoCompleto = { ...newPedido, id };
+        
+        setPedidos(prevPedidos => [...prevPedidos, pedidoCompleto]);
+
+        setSuccessMessage({
+          title: 'Pedido creado',
+          description: 'El pedido ha sido creado exitosamente'
+        });
+      }
+
       setSuccessAlertOpen(true);
+      setModalOpen(false);
+      setSelectedPedido(null);
+    } catch (error) {
+      console.error('Error al guardar pedido:', error);
     }
   };
 
@@ -175,24 +163,21 @@ export function PedidosView() {
       const newPedido = {
         ...data,
         fechaPedido: new Date().toISOString(),
-        estado: 'pendiente', // Siempre empezamos como pendiente
+        estado: 'pendiente' as const
       };
 
-      const pedidoId = await addPedido(newPedido);
+      await addPedido(newPedido);
 
       // Como el pedido es nuevo y pendiente, restamos las cantidades
       for (const elemento of data.elementos) {
-        console.log(`Restando ${elemento.cantidad} de ${elemento.elementoId} para nuevo pedido`);
-        await updateElementoCantidad(elemento.elementoId, -elemento.cantidad);
+        if (elemento.id) {
+          console.log(`Restando ${elemento.cantidad} de ${elemento.id} para nuevo pedido`);
+          await updateElementoCantidadSuministrada(elemento.id, -elemento.cantidad);
+        }
       }
 
       // Recargamos los datos
-      const [elementosActualizados, pedidosActualizados] = await Promise.all([
-        getElementos(),
-        getPedidos()
-      ]);
-      
-      setElementos(elementosActualizados);
+      const pedidosActualizados = await getPedidos();
       setPedidos(pedidosActualizados);
 
       setSuccessMessage({
@@ -281,7 +266,6 @@ export function PedidosView() {
           onDelete={handleDelete}
           itemsPerPage={itemsPerPage}
           onItemsPerPageChange={handleItemsPerPageChange}
-          elementos={elementos}
         />
       )}
 
